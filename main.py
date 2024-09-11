@@ -31,6 +31,9 @@ class Bomber(Turtle):
       self.xMove = self.xMove*-1
     if self.y > screenHeight/2 or (screenHeight/2)*-1>self.y:
       self.yMove = self.yMove *-1
+
+
+
 class Player(Turtle):
   def moveup(self):
     self.y+=9
@@ -56,6 +59,25 @@ class Player(Turtle):
     self.shapesize(stretch_wid=1.5,stretch_len=1.5)
   def move(self):
     pass
+
+class Timer(Turtle):
+  def __init__(self):
+    super().__init__()
+    self.hideturtle()
+    self.goto(-40,280)
+    self.color("white")
+  def writeTime(self,time):
+    time = str(time)[0:6]
+    self.clear()
+    self.write(time,font=("times new roman",18,"normal"))
+  def GAMEOVER(self):
+    self.goto(-100,100)
+    self.write("GAME OVER", font=("times new roman",52,"bold"))
+
+
+
+
+Timer = Timer()
 bomber1= Bomber(-200,200)
 bomber2= Bomber(200,200)
 bomber3= Bomber(-200,-200)
@@ -64,21 +86,26 @@ Player = Player()
 
 
 screen.listen()
+
 def Game(*args):
+
   screen.onkey(fun=Player.moveright, key="Right")
   screen.onkey(fun=Player.moveleft, key="Left")
   screen.onkey(fun=Player.moveup, key="Up")
   screen.onkey(fun=Player.movedown, key="Down")
+  startTime= time.time()
   while True:
+    Timer.writeTime(time.time() - startTime)
     for obj in ListOfObjects:
-      obj.move()
-      if obj.distance(Player)<30:
-        print("GAMEOVER")
-        break
-    time.sleep(.008)
-    screen.update()
-while True:
-    screen.onclick(fun = Game)
-    screen.mainloop()
+       if Player.distance(obj)<20 and obj!=Player:
+         print("GAMEOVER")
+         Timer.GAMEOVER()
+         return
+       obj.move()
 
-screen.mainloop()
+    time.sleep(.0)
+    screen.update()
+while 1:
+  screen.onclick(fun = Game)
+  screen.mainloop()
+
