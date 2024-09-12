@@ -1,6 +1,6 @@
 import turtle
 import random
-import time
+import time,math
 from turtle import Screen, Turtle
 screen= Screen()
 screen.tracer(False)
@@ -18,10 +18,12 @@ class Bomber(Turtle):
     self.shape("square")
     self.color("white")
     self.goto(xpos,ypos)
-    self.yMove = random.randint(-2,2)
+    self.shape("circle")
+    self.dir= random.randint(0,360)
+    self.yMove = 4*math.cos(self.dir)
     if self.yMove==0:
       self.yMove+=1
-    self.xMove = random.randint(1,8)
+    self.xMove = 4*math.sin(self.dir)
   def move(self):
     global screenWidth,screenHeight
     self.x = self.xcor()+self.xMove
@@ -99,6 +101,7 @@ def Game(*args):
     for obj in ListOfObjects:
        if Player.distance(obj)<20 and obj!=Player:
          print("GAMEOVER")
+         
          Timer.GAMEOVER()
          return
        obj.move()
@@ -107,5 +110,6 @@ def Game(*args):
     screen.update()
 while 1:
   screen.onclick(fun = Game)
+  Timer.write("Click to begin", font=("times new roman",52,"bold"))
   screen.mainloop()
 
