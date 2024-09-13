@@ -1,17 +1,20 @@
 import turtle
 import random
-import time,math
+import time,math,gc
+gc.disable()
 from turtle import Screen, Turtle
 screen= Screen()
 screen.tracer(False)
 ongoing=False
-#print("hi")
+
+
 screenWidth = 800
 screenHeight = 800
 screen.screensize(screenWidth,screenHeight,bg="black")
 screen.setup(screenWidth, screenHeight)
 ListOfObjects = []
-ENEMYWID=2
+ENEMYWID=1
+avgdir=0
 class Bomber(Turtle):
   def __init__(self,xpos,ypos,xSTRECH=1,ySTRECH=1,list= ListOfObjects):
     super().__init__()
@@ -28,23 +31,56 @@ class Bomber(Turtle):
     if self.yMove==0:
       self.yMove+=1
     self.xMove = 5*math.sin(self.dir)
+    self.x=xpos
+    self.y=ypos
+  def CentralDir(self):
+    try:
+      alpha=-self.x
+      beta=-self.y
+      degree= math.atan(beta/alpha)
+      if alpha>0:
+        degree+=math.pi
+    except:
+      if self.y>0:
+        degree=math.pi*1.5
+      else:
+        degree=math.pi/2
+    return degree
+    
   def move(self):
-    global screenWidth,screenHeight
+    global screenWidth,screenHeight,avgdir
+    self.xMove=math.cos(self.dir)*4
+    self.ymove=math.sin(self.dir)*4
+   
+    if (self.x > screenWidth/2 and self.xMove>0 ) or ((screenWidth/2)*-1>self.x and self.xMove<0):
+      self.xMove = self.xMove*-1
+      if self.x>screenWidth/2:
+        self.x=screenWidth/2
+      if self.x<-screenWidth:
+        self.x=-screenWidth/2
+    if self.y > screenHeight/2 and self.yMove>0 or (screenHeight/2)*-1>self.y and self.yMove<0:
+      self.yMove = self.yMove *-1
+      if self.y>screenHeight/2:
+        self.y=screenHeight/2
+      if self.y<-screenHeight:
+        self.y=-screenHeight/2
+    try:
+      self.dir= math.atan(self.yMove/self.xMove)
+    except:
+      self.dir=math.pi/2
+      print("x")
+    if self.xMove<0:
+      self.dir=self.dir+math.pi
+    self.dir=self.dir+avgdir/30+self.CentralDir()/2
     self.x = self.xcor()+self.xMove
     self.y = self.ycor()+self.yMove
     self.goto(self.x,self.y)
-    if self.x > screenWidth/2 or (screenWidth/2)*-1>self.x:
-      self.xMove = self.xMove*-1
-    if self.y > screenHeight/2 or (screenHeight/2)*-1>self.y:
-      self.yMove = self.yMove *-1
-    try:
-      self.dir= math.atan(self.y/self.x)
-    except:
-      self.dir=.45
-    
-    if self.xMove<0:
-      self.dir=math.pi/2+(math.pi/2-self.dir)
     #print(self.dir)
+
+
+
+
+
 
 
 
@@ -111,6 +147,8 @@ class player(Turtle):
     self.y=0
 
 
+
+
 class Timer(Turtle):
   def __init__(self):
     super().__init__()
@@ -137,7 +175,16 @@ class Timer(Turtle):
 
 
 
+
+
+
+
+
+
+
+
 Timer = Timer()
+
 
 bomber1= Bomber(-300,300)
 bomber2= Bomber(300,300)
@@ -147,20 +194,28 @@ bomber4= Bomber(300,-350)
 bomber5= Bomber(000,-300)
 bomber6= Bomber(300,000)
 bomber7= Bomber(350,-350)
+
+
 #Player = player()
+list=[]
+for i in range(6):
+  list.append(Bomber(0,50*i))
 
 
 screen.listen()
 
 
+avgHeading=[0,0]
+avgxMove=0
+avgyMove=0
 def Game(*args):
-  global ongoing
+  global ongoing,avgyMove,avgxMove,avgdir
   if ongoing==False:
     print("hello")
     Timer.reset()
     for i in ListOfObjects:
       i.goto(i.orgpos[0],i.orgpos[1])
-  
+ 
   #screen.onkeypress(fun=Player.moveright, key="Right")
   #screen.onkeypress(fun=Player.moveleft, key="Left")
   #screen.onkeypress(fun=Player.moveup, key="Up")
@@ -169,7 +224,9 @@ def Game(*args):
   #screen.onkeyrelease(fun=Player.releaseRight, key="Right")
   #screen.onkeyrelease(fun=Player.releaseUP, key="Up")
   #screen.onkeyrelease(fun=Player.releaseDown, key="Down")
-  
+ 
+
+
 
 
     ongoing=True
@@ -178,18 +235,36 @@ def Game(*args):
       Timer.writeTime(time.time() - startTime)
       for obj in ListOfObjects:
         for obj1 in ListOfObjects:
-          if obj.distance(obj1)<40 and obj1!=obj:
-            obj.yMove=-obj.yMove
-            obj.xMove=-obj.xMove
-          
+          if obj.distance(obj1)<25 and obj1!=obj:
+            if (obj.xMove>0 and obj1.xMove<0) or(obj.xMove<0 and obj1.xMove>0):
+             
+              obj.xMove=-obj.xMove
+            if (obj.yMove>0 and obj1.yMove<0) or (obj.yMove<0 and obj1.yMove>0):
+                obj.yMove=-obj.yMove
+            if obj1.xMove>obj.xMove:
+                obj.xMove=-obj.xMove
+            if obj1.yMove>obj.yMove:
+              obj.yMove=-obj.yMove
+
+
+        avgxMove+=obj.xMove
+        avgyMove+=obj.yMove  
         obj.move()
-    
-      time.sleep(.008)
+      avgyMove/=len(ListOfObjects)
+      avgxMove/=len(ListOfObjects)
+      avgdir= math.atan(avgyMove/avgxMove)
+      #if avgxMove<0:
+       # avgdir+=math.pi
+      time.sleep(.005)
+      print(avgdir)
       screen.update()
 while 1:
   screen.onclick(fun = Game)
   Timer.write("Click to begin", font=("times new roman",52,"bold"))
   screen.mainloop()
+
+
+
 
 
 
